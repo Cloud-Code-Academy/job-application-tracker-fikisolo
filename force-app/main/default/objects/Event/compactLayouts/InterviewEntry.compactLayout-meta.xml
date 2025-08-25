@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<CompactLayout xmlns="http://soap.sforce.com/2006/04/metadata">
+    <fullName>InterviewEntry</fullName>
+    <fields>OwnerId</fields>
+    <fields>Interview__c</fields>
+    <fields>Interview_type__c</fields>
+    <fields>StartDateTime</fields>
+    <fields>Subject</fields>
+    <fields>ActivityDateTime</fields>
+    <fields>WhatId</fields>
+    <fields>EndDateTime</fields>
+    <label>Interview Entry</label>
+</CompactLayout>
