@@ -5,6 +5,10 @@ public with sharing class TakeHomePayEstimationCal {
     final static Decimal MEDICARE_WITHHOLDING_RATE = 0.0145;
     final static Integer NUMBER_OF_MONTHS_IN_YEAR = 12;
 
+    /* Calculates taxes that will be taken out of a user's paycheck based on the offered salary 
+    and tax withholding rates. Also, calculates the estimated yearly and monthly take-home salary based on 
+    the offered salary taxes that will be taken out of a user's paycheck. 
+    */
     public static void calculatorTakeHomePay(List<Job_Application__c> jobApp, Map<Id,Job_Application__c> oldJobApp) {
 
 

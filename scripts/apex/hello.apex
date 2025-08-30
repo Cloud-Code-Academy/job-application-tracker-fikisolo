@@ -8,3 +8,7 @@
 //Get Jobs from Jooble API and insert into Salesforce
 
  JoobleJobSearchCallout.getJobApplicationsCallout();
+
+ //set primary contact
+  List<Job_Application__c> jobs = [SELECT Id, Primary_Contact__c FROM Job_Application__c WHERE Id = 'a01bm0000187iyUAAQ'];
+ AssignPrimaryContact.setPrimaryContact(jobs);

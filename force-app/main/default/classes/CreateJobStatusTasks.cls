@@ -1,5 +1,8 @@
 public with sharing class CreateJobStatusTasks {
-    //trigger handler method
+    /* "createTasks" method programmatic auto generate tasks for each step in 
+       the application process.
+       Generic method "createTasksForCurrentUser" used to create tasks for the current user.
+    */
     public static void createTasks(List<Job_Application__c> jobApp, Map<Id,Job_Application__c> oldJobApp) {
 
         for (Job_Application__c job : jobApp) {
@@ -32,28 +35,6 @@ public with sharing class CreateJobStatusTasks {
             }
         }
     }
-    /**
-     * Generic method to insert tasks for the current user.
-     */
-    private static void createTasksForCurrentUser(List<String> subjects, Integer dueInDays, Id jobId) {
-        List<Task> tasks = new List<Task>();
-
-        for (String subj : subjects) {
-            tasks.add(new Task(
-                Subject = subj,
-                ActivityDate = Date.today().addDays(dueInDays),
-                Priority = 'Normal',
-                WhatId = jobId,
-                OwnerId = UserInfo.getUserId(),
-                Status = 'Not Started'
-            ));
-        }
-
-        if (!tasks.isEmpty()) {
-            insert tasks;
-        }
-    }
-
     // SAVED
     @TestVisible
     private static void createSavedTasks(Id jobId) {
@@ -126,5 +107,26 @@ public with sharing class CreateJobStatusTasks {
             'Send a follow-up email thanking the interviewer and asking for feedback',
             'Review your notes and reflect on areas of improvement'
         }, 1, jobId);
+    }
+    /*
+      Generic method to insert tasks for the current user.
+    */
+    private static void createTasksForCurrentUser(List<String> subjects, Integer dueInDays, Id jobId) {
+        List<Task> tasks = new List<Task>();
+
+        for (String subj : subjects) {
+            tasks.add(new Task(
+                Subject = subj,
+                ActivityDate = Date.today().addDays(dueInDays),
+                Priority = 'Normal',
+                WhatId = jobId,
+                OwnerId = UserInfo.getUserId(),
+                Status = 'Not Started'
+            ));
+        }
+
+        if (!tasks.isEmpty()) {
+            insert tasks;
+        }
     }
 }
