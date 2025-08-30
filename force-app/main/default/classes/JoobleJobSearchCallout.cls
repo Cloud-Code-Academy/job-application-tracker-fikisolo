@@ -1,12 +1,15 @@
 public with sharing class JoobleJobSearchCallout {
-	
+	/*
+	Retrieve Salesforce-related jobs using the Jooble API
+	and create them as ‘Saved’ job applications. 
+	*/
     @future(callout=true)
     public static void getJobApplicationsCallout() {
 
         String apiKey = '49176da3-7e23-4275-b1f4-d97b9c763ace'; // Your API key
 		String endpoint = 'https://jooble.org/api/' + apiKey;
 
-		        // Create HTTP request to send.
+		// Create HTTP request to send.
 		HttpRequest req = new HttpRequest();
         req.setEndpoint(endpoint);
 		req.setMethod('POST');
@@ -17,7 +20,7 @@ public with sharing class JoobleJobSearchCallout {
 
         Date yesterday = Date.today().addDays(-1);
 		String yesterdayStr = String.valueOf(yesterday);
-
+		//search for salesforce related jobs in charlotte, NC area jobs posted yesterday.
         payload.put('keywords', 'Salesforce developer');
         payload.put('location', 'Charlotte, North Carolina');
         payload.put('datecreatedfrom', yesterdayStr);
@@ -60,9 +63,25 @@ public with sharing class JoobleJobSearchCallout {
 		for (Object job : jobList) {
 
 			Map<String,Object> objJob = (Map<String,Object>)job;
+
+			// Skip record if company name or job title is missing
+			String company = (String)objJob.get('company');
+			String jobTitle = (String)objJob.get('title');
+
+			if (String.isBlank(company) || String.isBlank(jobTitle)) {
+				System.debug('Skipping job because Company name or job tilte is missing: ' + objJob);
+				continue;
+			}
+
+			String jobName = (String)objJob.get('title') + ' at ' + (String)objJob.get('company');
+
+			// Limit job name to 80 characters
+			if (jobName.length() > 80) {
+				jobName = jobName.substring(0, 80);
+			}
 		
 			Job_Application__c jobApp = new Job_Application__c(
-				Name = (String)objJob.get('title') + ' at ' + (String)objJob.get('company'),
+				Name = jobName,
 				Job_Title__c = (String)objJob.get('title'), 
 				Company_Name__c = (String)objJob.get('company'),
 				Location__c = (String)objJob.get('location'),
