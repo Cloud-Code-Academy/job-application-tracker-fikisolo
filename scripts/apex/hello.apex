@@ -5,6 +5,18 @@
 // You can also execute the entire file by running the command:
 //     SFDX: Execute Anonymous Apex with Editor Contents
 
-string tempvar = 'Enter_your_name_here';
-System.debug('Hello World!');
-System.debug('My name is ' + tempvar);
+//Get Jobs from Jooble API and insert into Salesforce
+
+ JoobleJobSearchCallout.getJobApplicationsCallout();
+
+ //set primary contact
+  List<Job_Application__c> jobs = [SELECT Id, Primary_Contact__c FROM Job_Application__c WHERE Id = 'a01bm0000187iyUAAQ'];
+ AssignPrimaryContact.setPrimaryContact(jobs);
+
+ //check if interview reminder has been sent.
+ UpComingInterviewEmailReminder.sendEmailReminder()
+ List<EmailMessage> emailSent = [SELECT Id, Subject, ToAddress, CreatedDate FROM EmailMessage];
+ System.debug(JSON.serializePretty(emailSent));
+
+ // Run CleanStaleJobsApplications batch class
+Database.executeBatch(new CleanStaleJobsApplications());
