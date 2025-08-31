@@ -1,22 +1,25 @@
 public with sharing class UpComingInterviewEmailReminder {
-
+    /*Sends an email notification to the user a day before their scheduled interview.
+    The email includes the name of the user, interviewer and interview.
+    */
     public static void sendEmailReminder() {
-        //get list of interviews scheduled for next day.
+        
         Date tomorrow = Date.today().addDays(1);
         DateTime startTime = DateTime.newInstance(tomorrow, Time.newInstance(0,0,0,0));
         DateTime endTime = startTime.addDays(1);
 
+        //get list of interviews scheduled for next day.
         List<Event> upcomingEvents = [
             SELECT Id, OwnerId, WhoId, Who.Name, WhatId, What.Name, StartDateTime
             FROM Event 
             WHERE StartDateTime >= :startTime
             AND StartDateTime < :endTime
         ];
-
+        //if no event for tomorrow, return
         if (upcomingEvents.isEmpty()) {
                 return;
         }
-
+        //Sets of owner/user Ids assocated with event
         Set<Id> ownerIds = new Set<Id>();
         for (Event ev : upcomingEvents) {
             ownerIds.add(ev.OwnerId);

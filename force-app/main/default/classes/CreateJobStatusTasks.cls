@@ -1,6 +1,5 @@
 public with sharing class CreateJobStatusTasks {
-    /* "createTasks" method programmatic auto generate tasks for each step in 
-       the application process.
+    /* Auto generate tasks for each step in the application process.
        Generic method "createTasksForCurrentUser" used to create tasks for the current user.
     */
     public static void createTasks(List<Job_Application__c> jobApp, Map<Id,Job_Application__c> oldJobApp) {

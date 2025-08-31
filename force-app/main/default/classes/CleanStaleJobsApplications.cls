@@ -3,7 +3,7 @@ public with sharing class CleanStaleJobsApplications implements Database.Batchab
     Update the notes field that the job application was closed by an automated process.
     Stale Criteria:
     ●	Status is not Closed or Accepted
-    ●	Follow Date 30 days old or more
+    ●	Follow up date 30 days old or more
     */
     // Start method 
     public Database.QueryLocator start(Database.BatchableContext bc) {

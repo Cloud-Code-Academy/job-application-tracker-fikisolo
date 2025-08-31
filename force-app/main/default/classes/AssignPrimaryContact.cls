@@ -42,6 +42,3 @@ public with sharing class AssignPrimaryContact {
         }
     }
 }
-
-
-//List<JobApplicationContact__c> JobAppContacts = [SELECT Job_Application__c FROM JobApplicationContact__c WHERE Job_Application__c = :jobIds];    }

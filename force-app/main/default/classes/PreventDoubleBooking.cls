@@ -1,4 +1,7 @@
 public with sharing class PreventDoubleBooking {
+    /*Validations so that interview meetings cannot overlap, preventing double booking 
+    and weekend booking.
+    */
     public static void checkDoubleBooking(List<Event> events, Map<Id, Event> oldEvents) {
         // set of incoming events Owners Ids/Assigned To 
         Set<Id> ownerIds = new Set<Id>();
@@ -15,14 +18,16 @@ public with sharing class PreventDoubleBooking {
         //check for weekend booking
         for (Event newEvent : events) {
             if (newEvent.StartDateTime != null) {
+                //get integer value of the day of week
                 Integer dayOfWeek = Integer.valueOf(newEvent.StartDateTime.format('u')); // 1 = Monday, 7 = Sunday
                 if (dayOfWeek == 6 || dayOfWeek == 7) {
                     newEvent.addError('Interview cannot be scheduled on weekends.');
                     continue;
                 }
             }
-            // Convert StartDateTime and EndDateTime to minutes since epoch
+           
             Datetime epoch = Datetime.newInstanceGMT(1970, 1, 1, 0, 0, 0);
+            // Convert StartDateTime and EndDateTime to minutes since epoch
             Long newStartMinutes = (newEvent.StartDateTime.getTime() - epoch.getTime()) / 60000;
             Long newEndMinutes   = (newEvent.EndDateTime.getTime() - epoch.getTime()) / 60000;
 
