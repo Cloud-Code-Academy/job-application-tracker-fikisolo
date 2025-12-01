@@ -1,0 +1,123 @@
+<template>
+    <lightning-card title="Take-home Pay Estimation">
+        <!-- Annual Salary Input -->
+        <div class="slds-p-horizontal_small">
+            <lightning-input 
+                type="number" 
+                name="annualSalary" 
+                value={annualSalaryAmt} 
+                label="Annual Salary" 
+                onchange={handleChange}>
+            </lightning-input>
+        </div>
+
+        <!-- Federal Income Tax -->
+        <div class="slds-p-around_medium">
+            <span>Federal Income Tax: </span>
+            <lightning-formatted-number 
+                value={federalIncomeTaxAmt} 
+                format-style="currency" 
+                currency-code="USD">
+            </lightning-formatted-number>
+        </div>
+
+        <!-- Social Security Tax -->
+        <div class="slds-p-around_medium">
+            <span>Social Security Tax: </span>
+            <lightning-formatted-number 
+                value={socialSecurityTaxAmt} 
+                format-style="currency" 
+                currency-code="USD">
+            </lightning-formatted-number>
+        </div>
+
+        <!-- Medicare Withholding -->
+        <div class="slds-p-around_medium">
+            <span>Medicare Withholding: </span>
+            <lightning-formatted-number 
+                value={medicareWithholdingAmt} 
+                format-style="currency" 
+                currency-code="USD">
+            </lightning-formatted-number>
+        </div>
+
+        <!-- Take-home Paycheck Breakdown -->
+        <div slot="footer">
+            <h1 class="slds-text-title_bold">Take-home Paycheck Breakdown</h1>
+
+            <lightning-layout class="slds-box" horizontal-align="spread">
+
+                <!-- Annually -->
+                <lightning-layout-item flexibility="auto">
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label">Annually</label>
+                        <div class="slds-form-element__control">
+                            <lightning-formatted-number 
+                                value={annualTakeHomeAmt}
+                                format-style="currency" 
+                                currency-code="USD">
+                            </lightning-formatted-number>
+                        </div>
+                    </div>
+                </lightning-layout-item>
+
+                <!-- Six-Month -->
+                <lightning-layout-item flexibility="auto">
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label">Six-Month</label>
+                        <div class="slds-form-element__control">
+                            <lightning-formatted-number 
+                                value={sixMonth} 
+                                format-style="currency" 
+                                currency-code="USD">
+                            </lightning-formatted-number>
+                        </div>
+                    </div>
+                </lightning-layout-item>
+
+                <!-- Monthly -->
+                <lightning-layout-item flexibility="auto">
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label">Monthly</label>
+                        <div class="slds-form-element__control">
+                            <lightning-formatted-number 
+                                value={monthly} 
+                                format-style="currency"
+                                currency-code="USD">
+                            </lightning-formatted-number>
+                        </div>
+                    </div>
+                </lightning-layout-item>
+
+                <!-- Bi-Weekly -->
+                <lightning-layout-item flexibility="auto">
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label">Bi-Weekly</label>
+                        <div class="slds-form-element__control">
+                            <lightning-formatted-number 
+                                value={biweekly} 
+                                format-style="currency"
+                                currency-code="USD">
+                            </lightning-formatted-number>
+                        </div>
+                    </div>
+                </lightning-layout-item>
+
+                <!-- Weekly -->
+                <lightning-layout-item flexibility="auto">
+                    <div class="slds-form-element">
+                        <label class="slds-form-element__label">Weekly</label>
+                        <div class="slds-form-element__control">
+                            <lightning-formatted-number 
+                                value={weekly} 
+                                format-style="currency"
+                                currency-code="USD">
+                            </lightning-formatted-number>
+                        </div>
+                    </div>
+                </lightning-layout-item>
+
+            </lightning-layout>
+        </div>
+    </lightning-card>
+</template>
