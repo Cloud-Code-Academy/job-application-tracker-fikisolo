@@ -1,7 +1,8 @@
 @IsTest
-public with sharing class AssignPrimaryContactTest {
+private with sharing class AssignPrimaryContactTest {
+    //Test classes should be private unless they are being used as test data factories for shared data setup across multiple other test classes.
     @TestSetup
-    static void setupTestData() {
+    private static void setupTestData() {
         // Create 3 test Contacts
         List<Contact> contacts = new List<Contact>();
         for (Integer i = 1; i <= 3; i++) {
@@ -46,12 +47,18 @@ public with sharing class AssignPrimaryContactTest {
     }
 
     @IsTest
-    static void testSetPrimaryContact() {
+    private static void testSetPrimaryContact() {
         // Retrieve the Job Applications
         List<Job_Application__c> jobs = [SELECT Id, Primary_Contact__c FROM Job_Application__c];
 
         // Call the method to set primary contact
+        /*The method being tested should be called from within a test context using Test.startTest() and Test.stopTest()
+        This is important for several reasons, but mainly to clearly define the method under test and 
+        provide a fresh set of governor limits for the test transaction.*/
+        Test.startTest();
         AssignPrimaryContact.setPrimaryContact(jobs);
+        Test.stopTest();
+        
 
         // Verify results
         List<Job_Application__c> updatedJobs = [SELECT Id, Primary_Contact__c FROM Job_Application__c];

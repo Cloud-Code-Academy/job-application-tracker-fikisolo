@@ -3,11 +3,15 @@ public with sharing class CreateJobStatusTasks {
        Generic method "createTasksForCurrentUser" used to create tasks for the current user.
     */
     public static void createTasks(List<Job_Application__c> jobApp, Map<Id,Job_Application__c> oldJobApp) {
+        //add null check for input parameters 
+        if (jobApp == null || jobApp.isEmpty()){
+            return;
+        }
 
         for (Job_Application__c job : jobApp) {
             Job_Application__c oldJob = (oldJobApp != null) ? oldJobApp.get(job.Id) : null;
 
-            if (oldJobApp == null || (oldJobApp != null && job.Status__c != oldJob.Status__c)) {
+            if (oldJobApp == null || (oldJobApp != null && job.Status__c != null && job.Status__c != oldJob.Status__c)) {
                 switch on job.Status__c {
                     when 'Saved' {
                         createSavedTasks(job.Id);
@@ -30,8 +34,38 @@ public with sharing class CreateJobStatusTasks {
                     when 'Closed' {
                         createClosedTasks(job.Id);
                     }
+                    when else {
+                       job.addError('Invalid status value provided');
+                    }
                 }
             }
+        }
+    }
+    /*
+      Generic method to insert tasks for the current user.
+    */
+    private static void createTasksForCurrentUser(List<String> subjects, Integer dueInDays, Id jobId) {
+        List<Task> tasks = new List<Task>();
+
+        for (String subj : subjects) {
+            tasks.add(new Task(
+                Subject = subj,
+                ActivityDate = Date.today().addDays(dueInDays),
+                Priority = 'Normal',
+                WhatId = jobId,
+                OwnerId = UserInfo.getUserId(),
+                Status = 'Not Started'
+            ));
+        }
+
+        if (!tasks.isEmpty()) {
+            try {
+                    insert tasks;
+                } catch (Exception e) {
+                    System.debug(LoggingLevel.ERROR,
+                        '❗ Task insert failed — ' + e.getMessage()
+                    );
+                }
         }
     }
     // SAVED
@@ -107,25 +141,5 @@ public with sharing class CreateJobStatusTasks {
             'Review your notes and reflect on areas of improvement'
         }, 1, jobId);
     }
-    /*
-      Generic method to insert tasks for the current user.
-    */
-    private static void createTasksForCurrentUser(List<String> subjects, Integer dueInDays, Id jobId) {
-        List<Task> tasks = new List<Task>();
 
-        for (String subj : subjects) {
-            tasks.add(new Task(
-                Subject = subj,
-                ActivityDate = Date.today().addDays(dueInDays),
-                Priority = 'Normal',
-                WhatId = jobId,
-                OwnerId = UserInfo.getUserId(),
-                Status = 'Not Started'
-            ));
-        }
-
-        if (!tasks.isEmpty()) {
-            insert tasks;
-        }
-    }
 }

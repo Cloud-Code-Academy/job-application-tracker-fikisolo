@@ -6,12 +6,18 @@ public with sharing class JoobleJobSearchCallout {
     @future(callout=true)
     public static void getJobApplicationsCallout() {
 
-        String apiKey = '49176da3-7e23-4275-b1f4-d97b9c763ace'; // Your API key
-		String endpoint = 'https://jooble.org/api/' + apiKey;
-
+       // String apiKey = '49176da3-7e23-4275-b1f4-d97b9c763ace'; // Your API key
+		//Get apiKey from custom metadata 
+		Jooble_Config__mdt cfg = Jooble_Config__mdt.getInstance('DefaultApiKey');
+		String apiKey = cfg.API_Key__c;
+		//Get endpoint from Named credintial
+		String endpoint = 'callout:JoobleAPI/' + apiKey;
+        	
 		// Create HTTP request to send.
 		HttpRequest req = new HttpRequest();
-        req.setEndpoint(endpoint);
+
+		req.setEndpoint(endpoint);
+        //req.setEndpoint('callout:JoobleAPI'); 
 		req.setMethod('POST');
 		req.setHeader('Content-Type', 'application/json');
 
@@ -32,33 +38,83 @@ public with sharing class JoobleJobSearchCallout {
 		
 		try {
 			resp = new Http().send(req);
+			System.debug(resp);
+	
 		} catch (CalloutException calloutEx) {
         	System.debug('Callout error: ' + calloutEx.getMessage());
+			return; // nothing more to do
     	} catch (Exception ex) {
         	System.debug('Unexpected error: ' + ex.getMessage());
+			//If any exception is thrown in send(req), resp stays null, bail out early else resp.getStatusCode() will throw a NullPointerException.
+			return;
     	}
 		// If the HTTP response code is successful, parse the JSON response and upsert records to Job_Application__c 
 		List<Job_Application__c> jopAppList;
 		if(resp.getStatusCode() == 200){
+
 			try {
 				//System.debug(resp.getBody());
-				jopAppList = createJobApplicationFromResp(resp.getBody());
+				if (String.isBlank(resp.getBody())) {
+					System.debug('Empty response — no job applications returned');
+					jopAppList = new List<Job_Application__c>();
+				} else {
+					jopAppList = createJobApplicationFromResp(resp.getBody());
+				}
+				
 				//System.debug(JSON.serializePretty(jopAppList));
 			} catch (Exception parseEx) {
            		System.debug('Error parsing JSON: ' + parseEx.getMessage());
         	}
+		} else {
+			System.debug('Non-200 status from Jooble: ' + resp.getStatusCode() + ' Body: ' + resp.getBody());
+            return;
+		} 
+
+
+		//upsert jopAppList Jooble_Job_Id__c; ///insert/update from the JSON response using the external id 
+		
+		try {
+			if (jopAppList != null && !jopAppList.isEmpty()) {
+				// upsert Jobs from JSON response using Jooble_Job_Id__c as external Id field
+				Database.UpsertResult[] results = Database.upsert(jopAppList, Job_Application__c.Jooble_Job_Id__c, false);
+
+				for (Integer i = 0; i < results.size(); i++) {
+					if (!results[i].isSuccess()) {
+						for (Database.Error err : results[i].getErrors()) {
+							System.debug(LoggingLevel.ERROR,
+								'Upsert failed for Job Application '
+								+ 'ExtId=' + jopAppList[i].Jooble_Job_Id__c +
+								', Message=' + err.getMessage() +
+								', Fields=' + err.getFields()
+							);
+						}
+					}
+				}
+			} else {
+				System.debug(' No records in jopAppList to upsert — skipping');
+			}
+
+		} catch (Exception e) {
+			System.debug(LoggingLevel.ERROR,
+				'Fatal exception during Job Application upsert — ' + e.getMessage()
+			);
 		}
-		upsert jopAppList Jooble_Job_Id__c; ///insert/update from the JSON response using the external id 
+		
 		
 	}
     //Transforms a JSON response from Jooble API into a Salesforce Job_Application__c object.
     @TestVisible
 	private static List<Job_Application__c> createJobApplicationFromResp(String jsonResponse) {
+
 		// Deserialize the JSON string into map of primitive data types.
 		Map<String,Object> obj = (Map<String,Object>)JSON.deserializeUntyped(jsonResponse);
 		List<Object> jobList = (List<Object>)obj.get('jobs');
 
 		List<Job_Application__c> jobApplicationList = new List<Job_Application__c>();
+
+		if (jobList == null || jobList.isEmpty()) {
+			return jobApplicationList; // empty list, nothing to process
+		}
 
 		for (Object job : jobList) {
 
@@ -87,7 +143,7 @@ public with sharing class JoobleJobSearchCallout {
 				Location__c = (String)objJob.get('location'),
 				Status__c = 'Saved',
 				Description__c = stripHtmlTag((String)objJob.get('snippet')),
-				Salary__c = String.isNotBlank((String)objJob.get('salary'))? Decimal.valueOf((String)objJob.get('salary')) : null,
+				//Salary__c = String.isNotBlank((String)objJob.get('salary'))? Decimal.valueOf((String)objJob.get('salary')) : null,
 			 	URL__c = (String)objJob.get('link'),
 				Jooble_Job_Id__c = String.valueOf(Math.abs((Long) objJob.get('id')))
 			);

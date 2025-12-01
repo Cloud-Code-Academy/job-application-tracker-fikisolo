@@ -1,9 +1,12 @@
 public with sharing class TakeHomePayEstimationCal {
-
-    final static Decimal FED_INCOME_TAX_RATE = 0.21;
-    final static Decimal SOCIAL_SECURITY_TAX_RATE = 0.062;
-    final static Decimal MEDICARE_WITHHOLDING_RATE = 0.0145;
-    final static Integer NUMBER_OF_MONTHS_IN_YEAR = 12;
+    @testvisible
+    private final static Decimal FED_INCOME_TAX_RATE = 0.21;
+    @testvisible
+    private final static Decimal SOCIAL_SECURITY_TAX_RATE = 0.062;
+    @testvisible
+    private final static Decimal MEDICARE_WITHHOLDING_RATE = 0.0145;
+    @testvisible
+    private final static Integer NUMBER_OF_MONTHS_IN_YEAR = 12;
 
     /* Calculates taxes that will be taken out of a user's paycheck based on the offered salary 
     and tax withholding rates. Also, calculates the estimated yearly and monthly take-home salary based on 
@@ -28,24 +31,28 @@ public with sharing class TakeHomePayEstimationCal {
 
             if (oldJobApp == null || (oldJobApp != null && job.Salary__c != oldJob.Salary__c)) {
                 job.Fed_Income_Tax__c = calculatorFedIncomeTax(job.Salary__c);
-                job.Social_Security_Tax__c = socialSecurityTax(job.Salary__c);
-                job.Medicare_Withholding__c = medicareWithholding(job.Salary__c);
+                job.Social_Security_Tax__c = calculatorSocialSecurityTax(job.Salary__c);
+                job.Medicare_Withholding__c = calculatorMedicareWithholding(job.Salary__c);
                 job.AnnualTakeHome__c = job.Salary__c - (job.Fed_Income_Tax__c + job.Social_Security_Tax__c
                                                         + job.Medicare_Withholding__c);
                 job.Monthly_Income__c = calculatorMonthlyIncome(job.AnnualTakeHome__c);
             }
         }
     }
-    private static Decimal calculatorFedIncomeTax(Decimal annualSalary) {
+    @AuraEnabled(cacheable=true)
+    public static Decimal calculatorFedIncomeTax(Decimal annualSalary) {
         return annualSalary * FED_INCOME_TAX_RATE;
     }
-    private static Decimal socialSecurityTax(Decimal annualSalary) {
+    @AuraEnabled(cacheable=true)
+    public static Decimal calculatorSocialSecurityTax(Decimal annualSalary) {
         return annualSalary * SOCIAL_SECURITY_TAX_RATE;
     }
-    private static Decimal medicareWithholding(Decimal annualSalary) {
+    @AuraEnabled(cacheable=true)
+    public static Decimal calculatorMedicareWithholding(Decimal annualSalary) {
         return annualSalary * MEDICARE_WITHHOLDING_RATE;
     }
-    private static Decimal calculatorMonthlyIncome(Decimal annualTakeHome) {
+    @AuraEnabled(cacheable=true)
+    public static Decimal calculatorMonthlyIncome(Decimal annualTakeHome) {
         return annualTakeHome/NUMBER_OF_MONTHS_IN_YEAR;
     }
 }

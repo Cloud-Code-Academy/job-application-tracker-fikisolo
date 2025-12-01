@@ -1,8 +1,8 @@
 @IsTest
-public with sharing class UpComingInterviewEmailReminderTest {
+private with sharing class UpComingInterviewEmailReminderTest {
 
     @TestSetup
-    static void setupTestData() {
+    private static void setupTestData() {
         // Create a test user to be the owner of the Event
         Profile p = [SELECT Id FROM Profile WHERE Name='Standard User' LIMIT 1];
         User testUser = new User(
@@ -36,26 +36,33 @@ public with sharing class UpComingInterviewEmailReminderTest {
         );
         insert testContact;
 
-        // Create an Interview/Event scheduled for tomorrow
-        Date tomorrow = Date.today().addDays(1);
+        // Create an Interview/Event scheduled for  next weekday (tomorrow or the next Monday if weekend) since we can't create event on weekends
+        Date targetDay = EventHelper.nextWeekday(Date.today().addDays(1));
+        
         Event interviewEvent = new Event(
             OwnerId = testUser.Id,
             WhoId = testContact.Id,
             WhatId = jobApp.Id,
             Subject = 'Interview',
-            StartDateTime = DateTime.newInstance(tomorrow, Time.newInstance(10,0,0,0)),
-            EndDateTime = DateTime.newInstance(tomorrow, Time.newInstance(11,0,0,0)),
+            StartDateTime = DateTime.newInstance(targetDay, Time.newInstance(10,0,0,0)),
+            EndDateTime = DateTime.newInstance(targetDay, Time.newInstance(11,0,0,0)),
             IsAllDayEvent = false,
-            ActivityDate = tomorrow
+            ActivityDate = targetDay
         );
         insert interviewEvent;
     }
 
     @IsTest
-    static void testSendEmailReminder_Positive() {
+    private static void testSendEmailReminder_Positive() {
+
+        List<Event> upcomingEvents = [
+            SELECT Id, OwnerId, WhoId, Who.Name, WhatId, What.Name, StartDateTime
+            FROM Event 
+        ];
+
         Test.startTest();
         // Call the method
-        UpComingInterviewEmailReminder.sendEmailReminder();
+        UpComingInterviewEmailReminder.sendEmailReminder(upcomingEvents);
         Test.stopTest();
 
         // Verify that EmailMessage records are created
@@ -65,13 +72,13 @@ public with sharing class UpComingInterviewEmailReminderTest {
     }
 
     @IsTest
-    static void testSendEmailReminder_NoEvents() {
+    private static void testSendEmailReminder_NoEvents() {
         // Delete all Events to test negative scenario
         delete [SELECT Id FROM Event];
 
         Test.startTest();
         // Call the method, should not throw errors
-        UpComingInterviewEmailReminder.sendEmailReminder();
+        UpComingInterviewEmailReminder.sendEmailReminder(new List<Event>());
         Test.stopTest();
 
         // Verify no EmailMessage created

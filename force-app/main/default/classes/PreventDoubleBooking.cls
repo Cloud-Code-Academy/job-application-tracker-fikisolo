@@ -8,6 +8,11 @@ public with sharing class PreventDoubleBooking {
         for (Event e : events) {
             ownerIds.add(e.OwnerId);
         }
+
+        //If ownerIds is empty, exit the method early
+        if (ownerIds.isEmpty()) {
+            return;
+        }
         // Query existing events/interviews for these owners, excluding current records for updates
         List<Event> existingEvents = [
             SELECT Id, StartDateTime, EndDateTime, OwnerId
@@ -17,24 +22,29 @@ public with sharing class PreventDoubleBooking {
         ];
         //check for weekend booking
         for (Event newEvent : events) {
-            if (newEvent.StartDateTime != null) {
-                //get integer value of the day of week
-                Integer dayOfWeek = Integer.valueOf(newEvent.StartDateTime.format('u')); // 1 = Monday, 7 = Sunday
-                if (dayOfWeek == 6 || dayOfWeek == 7) {
+            //Its a good practice to validate that the fields you are working with are not null before trying to compare values.
+            //i.e. ensure newEvent.StartDateTime and newEvent.EndDateTime are not null
+            if (newEvent.StartDateTime == null || newEvent.EndDateTime == null) {
+                 newEvent.addError('Start and End time are required for an interview.');
+            }
+
+            //get integer value of the day of week
+            Integer dayOfWeek = Integer.valueOf(newEvent.StartDateTime.format('u')); // 1 = Monday, 7 = Sunday
+            if (dayOfWeek == 6 || dayOfWeek == 7) {
                     newEvent.addError('Interview cannot be scheduled on weekends.');
                     continue;
-                }
             }
-           
-            Datetime epoch = Datetime.newInstanceGMT(1970, 1, 1, 0, 0, 0);
+
+           // Datetime epoch = Datetime.newInstanceGMT(1970, 1, 1, 0, 0, 0);
             // Convert StartDateTime and EndDateTime to minutes since epoch
-            Long newStartMinutes = (newEvent.StartDateTime.getTime() - epoch.getTime()) / 60000;
-            Long newEndMinutes   = (newEvent.EndDateTime.getTime() - epoch.getTime()) / 60000;
+            Long newStartMinutes = EventHelper.convertDTimeToMinSinceEpoch(newEvent.StartDateTime);
+            Long newEndMinutes   = EventHelper.convertDTimeToMinSinceEpoch(newEvent.EndDateTime);
 
             //Check for overlapping events/interview date and time
             for (Event existing : existingEvents) {
-                Long existStartMinutes = (existing.StartDateTime.getTime() - epoch.getTime()) / 60000;
-                Long existEndMinutes   = (existing.EndDateTime.getTime() - epoch.getTime()) / 60000;
+                Long existStartMinutes = EventHelper.convertDTimeToMinSinceEpoch(existing.StartDateTime);
+                Long existEndMinutes   = EventHelper.convertDTimeToMinSinceEpoch(existing.EndDateTime);
+
 
                 /*If new event/interview starts any time before an existing event/interview                 
                   and doesn't end before start time of an existing event/interview

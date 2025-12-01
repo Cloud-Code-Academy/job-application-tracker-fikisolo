@@ -1,5 +1,5 @@
 @IsTest
-public class CreateJobStatusTasksTest {
+private class CreateJobStatusTasksTest {
     
     // Utility method to create a test Job Application
     private static Job_Application__c createJobApplication(String status) {
